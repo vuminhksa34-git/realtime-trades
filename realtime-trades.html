@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Realtime Trades from Firebase</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Realtime Trades from Firebase</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Symbol</th>
+        <th>Time</th>
+        <th>Price</th>
+        <th>Volume</th>
+        <th>Match Type</th>
+      </tr>
+    </thead>
+    <tbody id="data-body"></tbody>
+  </table>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { getDatabase, ref, query, limitToLast, onValue } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6ODDpjkwXR4b_w5NbOdgE1vEmZJ-cbUs",
+      authDomain: "minkey-765c5.firebaseapp.com",
+      databaseURL: "https://minkey-765c5-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "minkey-765c5",
+      storageBucket: "minkey-765c5.appspot.com",
+      messagingSenderId: "237689895784",
+      appId: "1:237689895784:web:47cb7c6022ceb1ef67b4dd",
+      measurementId: "G-CRXWFWX09S"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    const tradesRef = query(ref(database, 'trades'), limitToLast(100));
+
+    onValue(tradesRef, (snapshot) => {
+      const data = snapshot.val();
+      const tableBody = document.getElementById('data-body');
+      tableBody.innerHTML = "";
+
+      let tradesArray = [];
+      for (const key in data) {
+        tradesArray.push(data[key]);
+      }
+
+      tradesArray.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+      tradesArray.forEach(trade => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${trade.id}</td>
+          <td>${trade.symbol}</td>
+          <td>${trade.time}</td>
+          <td>${trade.price}</td>
+          <td>${trade.volume}</td>
+          <td>${trade.match_type}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    });
+  </script>
+
+</body>
+</html>
